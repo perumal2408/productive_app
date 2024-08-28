@@ -5,13 +5,17 @@ class Habit {
   bool isCompleted;
   int streakCount;
 
-  Habit({required this.name, this.isCompleted = false, this.streakCount = 0});
+  Habit({
+    required this.name,
+    this.isCompleted = false,
+    this.streakCount = 0,
+  });
 
   factory Habit.fromJson(Map<String, dynamic> json) {
     return Habit(
       name: json['name'],
-      isCompleted: json['isCompleted'],
-      streakCount: json['streakCount'],
+      isCompleted: json['isCompleted'] ?? false,  // Provide a default value
+      streakCount: json['streakCount'] ?? 0,      // Provide a default value
     );
   }
 

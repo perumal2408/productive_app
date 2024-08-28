@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../models/habit.dart';
+import '../utils/local_storage.dart';
 
 class HabitChecklistScreen extends StatefulWidget {
   @override
@@ -12,48 +13,51 @@ class _HabitChecklistScreenState extends State<HabitChecklistScreen> {
   @override
   void initState() {
     super.initState();
-    _loadHobbies();
+    _loadHabits();
   }
 
-  Future<void> _loadHobbies() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    List<String> hobbies = prefs.getStringList('hobbies') ?? [];
+  Future<void> _loadHabits() async {
+    List<Habit> habits = await LocalStorage.loadHabits();
     setState(() {
-      _habits = hobbies.map((hobby) => Habit(name: hobby, completed: false)).toList();
+      _habits = habits;
     });
   }
 
   void _toggleHabitCompletion(int index) {
     setState(() {
-      _habits[index].completed = !_habits[index].completed;
+      Habit habit = _habits[index];
+      habit.isCompleted = !habit.isCompleted;
+
+      if (habit.isCompleted) {
+        habit.streakCount += 1;
+      } else if (habit.streakCount > 0) {
+        habit.streakCount -= 1;
+      }
+
+      _saveHabits();
     });
+  }
+
+  Future<void> _saveHabits() async {
+    await LocalStorage.saveHabits(_habits);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Habit Checklist')),
-      body: _habits.isEmpty
-          ? Center(child: Text('No habits added yet'))
-          : ListView.builder(
-              itemCount: _habits.length,
-              itemBuilder: (context, index) {
-                return CheckboxListTile(
-                  title: Text(_habits[index].name),
-                  value: _habits[index].completed,
-                  onChanged: (bool? value) {
-                    _toggleHabitCompletion(index);
-                  },
-                );
-              },
-            ),
+      body: ListView.builder(
+        itemCount: _habits.length,
+        itemBuilder: (context, index) {
+          return CheckboxListTile(
+            title: Text(_habits[index].name),
+            value: _habits[index].isCompleted,
+            onChanged: (bool? value) {
+              _toggleHabitCompletion(index);
+            },
+          );
+        },
+      ),
     );
   }
-}
-
-class Habit {
-  String name;
-  bool completed;
-
-  Habit({required this.name, this.completed = false});
 }

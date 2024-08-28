@@ -68,6 +68,13 @@ class _HabitScreenState extends State<HabitScreen> {
               },
             ),
           ),
+          ElevatedButton(
+            onPressed: () async {
+              await _saveHabits();
+              Navigator.pushNamed(context, '/habitChecklist');
+            },
+            child: Text('Go to Habit Checklist'),
+          ),
         ],
       ),
     );
